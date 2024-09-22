@@ -14,9 +14,6 @@
 </script>
 
 <Router {routes} />
-<a href="#/creator">Go to Creator</a>
-<a href="#/results">Go to Results</a>
-<a href="#/link">Go to Link</a>
 
 <style>
 	:global(body) {
