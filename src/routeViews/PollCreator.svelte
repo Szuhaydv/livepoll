@@ -9,7 +9,7 @@
 	Livepoll
 </h1>
 <Note title="What exercise should I do?">
-	<ul class="flex flex-col mt-12">
+	<ul class="flex flex-col">
 		{#each texts as text, index}
 			<li
 				class="flex items-center border-t-2 h-16 border-slate-400 w-full pl-12 last:border-b-2"
@@ -30,7 +30,7 @@
 						></div>
 					{/if}
 				</div>
-				<p class="font-caveatBrush text-3xl ml-6">
+				<p class="ml-6">
 					{text}
 				</p>
 			</li>

@@ -23,5 +23,7 @@
 		background-image: url("/assets/tile.png");
 		background-repeat: repeat;
 		background-size: auto;
+		font-family: "Caveat Brush";
+		font-size: 2rem;
 	}
 </style>

@@ -8,7 +8,7 @@
 </h1>
 <Note title="Your poll is available at:">
 	<div
-		class="mt-14 flex items-center justify-between pl-8 pr-4 py-1 bg-white rounded-2xl"
+		class="flex items-center justify-between pl-8 pr-4 py-1 bg-white rounded-2xl"
 	>
 		<p class="font-caveatBrush text-5xl inline-block">
 			https://www.something.com
