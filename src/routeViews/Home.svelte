@@ -8,5 +8,7 @@
 	>
 		Welcome<br />to livepoll!
 	</h1>
-	<Button url="#/creator" text="Create Poll"></Button>
+	<div class="mt-10">
+		<Button url="#/creator" text="Create Poll"></Button>
+	</div>
 </main>

@@ -25,5 +25,7 @@
 		background-size: auto;
 		font-family: "Caveat Brush";
 		font-size: 2rem;
+		display: flex;
+		flex-direction: column;
 	}
 </style>
