@@ -7,7 +7,7 @@
 		texts = [...texts, ""];
 	}
 	function deleteOption(index) {
-		texts = [...texts.slice(index), ...texts.slice(index + 1, -1)];
+		texts = [...texts.slice(0, index), ...texts.slice(index + 1)];
 	}
 </script>
 
@@ -27,7 +27,7 @@
 				>
 					<input
 						type="radio"
-						class="appearance-none w-10 h-10 rounded-full bg-white border-2 border-black cursor-pointer"
+						class="appearance-none w-10 h-10 rounded-full bg-white border border-black cursor-pointer"
 						name="choice"
 					/>
 					{#if selectedOption == index}
