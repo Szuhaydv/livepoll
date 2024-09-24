@@ -39,7 +39,7 @@
 <style>
 	.loading-bar {
 		background-image: linear-gradient(
-			to top left,
+			-45deg,
 			#ffc33c 0%,
 			#ffc33c 25%,
 			#ffaf2d 25%,
@@ -50,5 +50,12 @@
 			#ffaf2d 100%
 		);
 		background-size: 2rem;
+		animation: progress 0.75s linear infinite;
+	}
+
+	@keyframes progress {
+		to {
+			background-position-x: 2rem;
+		}
 	}
 </style>
