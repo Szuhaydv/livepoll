@@ -2,12 +2,15 @@
 	import Button from "../components/Button.svelte";
 	import Note from "../components/Note.svelte";
 	$: texts = ["Situps", "Push ups", "Squats", "Pull ups"];
-	$: selectedOption = 0;
+	$: selectedOption = -1;
 	function addOption() {
 		texts = [...texts, ""];
 	}
 	function deleteOption(index) {
 		texts = [...texts.slice(0, index), ...texts.slice(index + 1)];
+	}
+	function focusOption(e) {
+		e.focus();
 	}
 </script>
 
@@ -27,7 +30,7 @@
 				>
 					<input
 						type="radio"
-						class="appearance-none w-10 h-10 rounded-full bg-white border border-black cursor-pointer"
+						class="appearance-none w-10 h-10 rounded-full bg-white border border-black cursor-pointer drop-shadow-lg"
 						name="choice"
 					/>
 					{#if selectedOption == index}
@@ -37,9 +40,10 @@
 					{/if}
 				</div>
 				<input
-					class="ml-6 bg-transparent border-none focus:outline-none"
+					class="mx-6 text-ellipsis overflow-hidden whitespace-nowrap bg-transparent w-full border-none focus:outline-none"
 					type="text"
 					value={text}
+					use:focusOption={index}
 				/>
 				<button
 					class="ml-auto mr-12 border-none"
