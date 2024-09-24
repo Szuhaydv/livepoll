@@ -4,7 +4,7 @@
 	export let actionButton = false;
 	export let action;
 	const styles =
-		"text-white visited:text-white hover:no-underline hover:scale-105 rounded-3xl border-white border-4 bg-gradient-to-b from-lime-300 to-green-700 w-max px-16 inline-block shadow-lg focus:border-white active:scale-100 transition";
+		"text-white visited:text-white hover:no-underline rounded-3xl border-white border-4 bg-gradient-to-b from-lime-300 to-green-700 w-max px-16 inline-block shadow-lg focus:border-white active:scale-95 transition";
 </script>
 
 {#if actionButton}

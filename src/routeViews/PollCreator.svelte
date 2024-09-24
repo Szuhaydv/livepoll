@@ -1,8 +1,14 @@
 <script>
 	import Button from "../components/Button.svelte";
 	import Note from "../components/Note.svelte";
-	const texts = ["Situps", "Push ups", "Squats", "Pull ups"];
+	$: texts = ["Situps", "Push ups", "Squats", "Pull ups"];
 	$: selectedOption = 0;
+	function addOption() {
+		texts = [...texts, ""];
+	}
+	function deleteOption(index) {
+		texts = [...texts.slice(index), ...texts.slice(index + 1, -1)];
+	}
 </script>
 
 <h1 class="text-8xl text-yellow-400 text-center pt-[4vh] font-actionJackson">
@@ -30,14 +36,22 @@
 						></div>
 					{/if}
 				</div>
-				<p class="ml-6">
-					{text}
-				</p>
+				<input
+					class="ml-6 bg-transparent border-none focus:outline-none"
+					type="text"
+					value={text}
+				/>
+				<button
+					class="ml-auto mr-12 border-none"
+					on:click={() => deleteOption(index)}
+				>
+					<img src="/assets/trash.svg" alt="Trash can icon" />
+				</button>
 			</li>
 		{/each}
 	</ul>
 	<div class="w-full flex justify-center mt-8">
-		<button class="border-none">
+		<button class="border-none" on:click={() => addOption()}>
 			<img src="/assets/add.svg" alt="Add icon" class="w-10 h-10" />
 		</button>
 	</div>
