@@ -27,9 +27,10 @@
 						: ''}"
 				>
 					<div
-						class="loading-bar rounded-full w-40 h-8 mr-4 border border-black"
+						class="loading-bar rounded-full h-8 mr-4 border border-black"
+						style="width: {percentages[index]}%"
 					></div>
-					<span>{percentages[index]} %</span>
+					<span class="text-nowrap">{percentages[index]} %</span>
 				</div>
 			</li>
 		{/each}
@@ -51,6 +52,7 @@
 		);
 		background-size: 2rem;
 		animation: progress 0.75s linear infinite;
+		box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
 	}
 
 	@keyframes progress {
