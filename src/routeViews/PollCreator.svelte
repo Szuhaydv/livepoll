@@ -36,7 +36,7 @@
 			</li>
 		{/each}
 	</ul>
+	<div class="w-full flex justify-center" slot="just-below">
+		<Button url="#/link" text="Create Poll"></Button>
+	</div>
 </Note>
-<div class="w-full flex justify-center">
-	<Button url="#/link" text="Create Poll"></Button>
-</div>

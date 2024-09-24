@@ -3,7 +3,7 @@
 	export let titleMargin = 10;
 </script>
 
-<div class="flex items-center justify-center">
+<div class="flex flex-col gap-9 items-center justify-center">
 	<main class="bg-yellow-paper w-[48rem] shadow-2xl py-12 px-24">
 		<h2
 			class="font-bangers text-5xl text-center"
@@ -13,6 +13,7 @@
 		</h2>
 		<slot></slot>
 	</main>
+	<slot name="just-below"></slot>
 </div>
 
 <style>
