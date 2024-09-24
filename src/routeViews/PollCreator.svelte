@@ -36,6 +36,11 @@
 			</li>
 		{/each}
 	</ul>
+	<div class="w-full flex justify-center mt-8">
+		<button class="border-none">
+			<img src="/assets/add.svg" alt="Add icon" class="w-10 h-10" />
+		</button>
+	</div>
 	<div class="w-full flex justify-center" slot="just-below">
 		<Button url="#/link" text="Create Poll"></Button>
 	</div>
