@@ -22,7 +22,7 @@
 			class="overflow-hidden whitespace-nowrap text-ellipsis inline-block"
 			>{link}</span
 		>
-		<img class="w-14 h-14" src="/assets/link.svg" alt="Link icon" />
+		<img class="w-14 h-14" src="/public/assets/link.svg" alt="Link icon" />
 	</button>
 	<div class="w-full flex justify-center mt-10">
 		<Button text="Copy" actionButton="true" action={copyLink}></Button>

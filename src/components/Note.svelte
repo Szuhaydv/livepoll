@@ -23,7 +23,7 @@
 					on:click={() => titleRef.focus()}
 				>
 					<img
-						src="/assets/edit.svg"
+						src="/public/assets/edit.svg"
 						alt="Paper and pencil icon"
 						class="w-10 h-10"
 					/>

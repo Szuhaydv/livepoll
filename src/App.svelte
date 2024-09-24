@@ -20,7 +20,7 @@
 		max-height: 100vh;
 		margin: 0;
 		padding: 0;
-		background-image: url("/assets/tile.png");
+		background-image: url("/public/assets/tile.png");
 		background-repeat: repeat;
 		background-size: auto;
 		font-family: "Caveat Brush";

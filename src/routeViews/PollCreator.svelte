@@ -49,14 +49,18 @@
 					class="ml-auto mr-12 border-none"
 					on:click={() => deleteOption(index)}
 				>
-					<img src="/assets/trash.svg" alt="Trash can icon" />
+					<img src="/public/assets/trash.svg" alt="Trash can icon" />
 				</button>
 			</li>
 		{/each}
 	</ul>
 	<div class="w-full flex justify-center mt-8">
 		<button class="border-none" on:click={() => addOption()}>
-			<img src="/assets/add.svg" alt="Add icon" class="w-10 h-10" />
+			<img
+				src="/public/assets/add.svg"
+				alt="Add icon"
+				class="w-10 h-10"
+			/>
 		</button>
 	</div>
 	<div class="w-full flex justify-center" slot="just-below">

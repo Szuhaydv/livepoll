@@ -21,7 +21,7 @@
 </h1>
 <Note title="What exercise should I do?" titleMargin={2}>
 	<div class="w-full flex justify-center items-center gap-5 mb-8">
-		<img src="/assets/clock.svg" alt="Clock icon" />
+		<img src="/public/assets/clock.svg" alt="Clock icon" />
 		<p>
 			{Math.floor(duration / 60)}:{String(duration % 60).padStart(2, "0")}
 		</p>

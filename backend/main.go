@@ -12,12 +12,10 @@ func testHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	fsBuild := http.FileServer(http.Dir(filepath.Join("..", "public", "build")))
-	http.Handle("/build/", http.StripPrefix("/build/", fsBuild))
+	fs := http.FileServer(http.Dir(filepath.Join("..", "public")))
+	http.Handle("/public/", http.StripPrefix("/public/", fs))
 
-	fsAssets := http.FileServer(http.Dir(filepath.Join("..", "public", "assets")))
-	http.Handle("/assets/", http.StripPrefix("/assets/", fsAssets))
-
+	// Serve the root route with testHandler
 	http.HandleFunc("/", testHandler)
 
 	fmt.Println("Running server...")
