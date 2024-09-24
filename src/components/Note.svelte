@@ -1,7 +1,7 @@
 <script>
 	export let title;
 	export let titleMargin = 10;
-	export let isTitleEditable = true;
+	export let isTitleEditable = false;
 	let titleRef;
 </script>
 

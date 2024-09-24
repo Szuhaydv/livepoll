@@ -18,7 +18,10 @@
 		class="flex items-center justify-between border-none w-full pl-8 pr-4 py-1 bg-white rounded-2xl cursor-pointer active:scale-95 transition"
 		on:click={copyLink}
 	>
-		<span class="inline-block">{link}</span>
+		<span
+			class="overflow-hidden whitespace-nowrap text-ellipsis inline-block"
+			>{link}</span
+		>
 		<img class="w-14 h-14" src="/assets/link.svg" alt="Link icon" />
 	</button>
 	<div class="w-full flex justify-center mt-10">
