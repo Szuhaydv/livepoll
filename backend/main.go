@@ -3,10 +3,12 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	_ "github.com/lib/pq"
 	"log"
 	"net/http"
+	"os"
 	"path/filepath"
+
+	_ "github.com/lib/pq"
 )
 
 func testHandler(w http.ResponseWriter, r *http.Request) {
@@ -21,6 +23,19 @@ const (
 	password = "1234"
 	dbname   = "livepoll_test"
 )
+
+func executeQuery(db *sql.DB, filepath string) error {
+	query, err := os.ReadFile(filepath)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	_, err = db.Exec(string(query))
+	if err != nil {
+		log.Fatal(err)
+	}
+	return nil
+}
 
 func main() {
 	// creating DB connection
@@ -38,6 +53,13 @@ func main() {
 		log.Fatal(err)
 	}
 	fmt.Println("Successfully connected to the database!")
+
+	// initializing tables
+	err = initDB(db)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("Initialized tables")
 
 	fs := http.FileServer(http.Dir(filepath.Join("..", "public")))
 	http.Handle("/public/", http.StripPrefix("/public/", fs))
