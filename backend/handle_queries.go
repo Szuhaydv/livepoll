@@ -1,47 +1,57 @@
 package main
 
 import (
-	"database/sql"
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/google/uuid"
 	"github.com/lib/pq"
 )
 
-func insertPoll(db *sql.DB, poll Poll) (uuid.UUID, error) {
-	sqlBytes, err := os.ReadFile("./queries/insert_poll.sql")
+func executeQuery(filepath string, isFatal bool, args ...interface{}) error {
+	query, err := os.ReadFile(filepath)
 	if err != nil {
-		return uuid.Nil, fmt.Errorf("Error reading sql query for insert into polls. %w", err)
-	}
-
-	id := uuid.New()
-
-	_, err = db.Exec(string(sqlBytes), id, poll.Duration, poll.Title)
-	if err != nil {
-		return uuid.Nil, fmt.Errorf("Error executing sql query for insert into polls. %w", err)
-
-	}
-
-	return id, nil
-}
-
-func insertOptions(db *sql.DB, pollID uuid.UUID, options []Option) error {
-	for _, option := range options {
-		sqlBytes, err := os.ReadFile("./queries/insert_option.sql")
-		if err != nil {
-			return fmt.Errorf("Error reading sql query for insert into options. %w", err)
+		if isFatal {
+			log.Fatal(err)
+		} else {
+			return fmt.Errorf("Error reading sql. %w", err)
 		}
+	}
 
-		_, err = db.Exec(string(sqlBytes), pollID, option.Name)
-		if err != nil {
-			return fmt.Errorf("Error executing sql query for insert into options. %w", err)
+	_, err = db.Exec(string(query), args...)
+	if err != nil {
+		if isFatal {
+			log.Fatal(err)
+		} else {
+			return fmt.Errorf("Error executing sql. %w", err)
 		}
 	}
 	return nil
 }
 
-func getPoll(db *sql.DB, pollID uuid.UUID) (Poll, error) {
+func insertPoll(poll Poll) (uuid.UUID, error) {
+	id := uuid.New()
+	err := executeQuery("./queries/insert_poll.sql", false, id, poll.Duration, poll.Title)
+	if err != nil {
+		return uuid.Nil, err
+	}
+
+	return id, nil
+}
+
+func insertOptions(pollID uuid.UUID, options []Option) error {
+	for _, option := range options {
+		err := executeQuery("./queries/insert_option.sql", false, pollID, option.Name)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// could refactor
+func getPoll(pollID uuid.UUID) (Poll, error) {
 	var poll Poll
 
 	queryInBytes1, err := os.ReadFile("./queries/select_poll_metadata.sql")
@@ -51,7 +61,7 @@ func getPoll(db *sql.DB, pollID uuid.UUID) (Poll, error) {
 
 	err = db.QueryRow(string(queryInBytes1), pollID).Scan(&poll.Title, &poll.Duration, &poll.CreatedAt)
 	if err != nil {
-		return Poll{}, fmt.Errorf("Error executing sql query for selecet poll title. %w", err)
+		return Poll{}, fmt.Errorf("Error executing sql query for select poll title. %w", err)
 	}
 
 	queryInBytes2, err := os.ReadFile("./queries/select_options.sql")
@@ -77,19 +87,15 @@ func getPoll(db *sql.DB, pollID uuid.UUID) (Poll, error) {
 	return poll, nil
 }
 
-func updateVotes(db *sql.DB, vote Vote) error {
+// could refactor
+func updateVotes(vote Vote) error {
 
-	queryInBytes1, err := os.ReadFile("./queries/insert_vote.sql")
-	if err != nil {
-		return fmt.Errorf("Error reading sql query for inserting vote. %w", err)
-	}
-
-	_, err = db.Exec(string(queryInBytes1), vote.VoterID, vote.OptionID)
+	err := executeQuery("./queries/insert_vote.sql", false, vote.VoterID, vote.OptionID)
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
-			return fmt.Errorf("Vote from voterID %s already exists: %w", vote.VoterID, err)
+			return fmt.Errorf("vote from voterID %s already exists: %w", vote.VoterID, err)
 		}
-		return fmt.Errorf("Error executing sql query for inserting vote: %w", err)
+		return err
 	}
 
 	tx, err := db.Begin()

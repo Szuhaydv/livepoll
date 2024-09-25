@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"path/filepath"
 	"time"
 
@@ -56,12 +55,12 @@ func handlePollCreate(w http.ResponseWriter, r *http.Request) {
 		poll.Duration = &defaultDuration
 	}
 
-	pollID, createErr := insertPoll(db, poll)
+	pollID, createErr := insertPoll(poll)
 	if createErr != nil {
 		http.Error(w, fmt.Sprintf("Failed to insert poll %v", createErr), http.StatusInternalServerError)
 		return
 	}
-	err = insertOptions(db, pollID, poll.Options)
+	err = insertOptions(pollID, poll.Options)
 	if err != nil {
 		http.Error(w, "Failed to insert options", http.StatusInternalServerError)
 		return
@@ -79,7 +78,7 @@ func handleGetPoll(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Specified id query paramter not in acceptable uuid format", http.StatusBadRequest)
 		return
 	}
-	poll, selectErr := getPoll(db, id)
+	poll, selectErr := getPoll(id)
 	if selectErr != nil {
 		http.Error(w, selectErr.Error(), http.StatusBadRequest)
 		return
@@ -97,7 +96,7 @@ func handleVote(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = updateVotes(db, vote)
+	err = updateVotes(vote)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Error updating votes: %v", err), http.StatusInternalServerError)
 		return
@@ -111,19 +110,6 @@ const (
 	password = "1234"
 	dbname   = "livepoll_test"
 )
-
-func executeQuery(filepath string) error {
-	query, err := os.ReadFile(filepath)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	_, err = db.Exec(string(query))
-	if err != nil {
-		log.Fatal(err)
-	}
-	return nil
-}
 
 var db *sql.DB
 
