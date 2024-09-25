@@ -43,7 +43,7 @@ func insertOptions(db *sql.DB, pollID uuid.UUID, options []Option) error {
 func selectTitleAndOptions(db *sql.DB, pollID uuid.UUID) (Poll, error) {
 	var poll Poll
 
-	queryInBytes1, err := os.ReadFile("./queries/select_poll_title.sql")
+	queryInBytes1, err := os.ReadFile("./queries/select_poll_metadata.sql")
 	if err != nil {
 		return Poll{}, fmt.Errorf("Error reading sql query for select poll title. %w", err)
 	}
