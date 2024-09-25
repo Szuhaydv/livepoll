@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"github.com/gorilla/mux"
 	"log"
 	"net/http"
 	"os"
@@ -55,21 +56,27 @@ func main() {
 	fmt.Println("Successfully connected to the database!")
 
 	// initializing tables
-	err = initDB(db)
+	err = tablesInit(db)
 	if err != nil {
 		log.Fatal(err)
 	}
 	fmt.Println("Initialized tables")
 
-	fs := http.FileServer(http.Dir(filepath.Join("..", "public")))
-	http.Handle("/public/", http.StripPrefix("/public/", fs))
+	// ROUTING
+	router := mux.NewRouter()
 
-	// Serve the root route with testHandler
-	http.HandleFunc("/", testHandler)
+	// serving assets
+	fileServer := http.FileServer(http.Dir(filepath.Join("..", "public")))
+	router.PathPrefix("/public/").Handler(http.StripPrefix("/public/", fileServer))
 
-	fmt.Println("Running server...")
-	err = http.ListenAndServe(":7777", nil)
-	if err != nil {
-		fmt.Println("Error running server")
+	// cathcall route serves Svelte SPA frontend
+
+	router.PathPrefix("/").HandlerFunc(testHandler)
+
+	srv := &http.Server{
+		Handler: router,
+		Addr:    "localhost:7777",
 	}
+	fmt.Println("Running server...")
+	log.Fatal(srv.ListenAndServe())
 }

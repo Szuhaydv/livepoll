@@ -4,7 +4,7 @@ import (
 	"database/sql"
 )
 
-func initDB(db *sql.DB) error {
+func tablesInit(db *sql.DB) error {
 	if err := executeQuery(db, "./queries/create_polls_table.sql"); err != nil {
 		return err
 	}
