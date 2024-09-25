@@ -41,15 +41,14 @@ func insertOptions(db *sql.DB, pollID uuid.UUID, options []Option) error {
 }
 
 func selectTitleAndOptions(db *sql.DB, pollID uuid.UUID) (Poll, error) {
-	var title string
-	var options []Option
+	var poll Poll
 
 	queryInBytes1, err := os.ReadFile("./queries/select_poll_title.sql")
 	if err != nil {
 		return Poll{}, fmt.Errorf("Error reading sql query for select poll title. %w", err)
 	}
 
-	err = db.QueryRow(string(queryInBytes1), pollID).Scan(&title)
+	err = db.QueryRow(string(queryInBytes1), pollID).Scan(&poll.Title, &poll.Duration, &poll.CreatedAt)
 	if err != nil {
 		return Poll{}, fmt.Errorf("Error executing sql query for selecet poll title. %w", err)
 	}
@@ -71,8 +70,8 @@ func selectTitleAndOptions(db *sql.DB, pollID uuid.UUID) (Poll, error) {
 		if err != nil {
 			return Poll{}, fmt.Errorf("Error scanning row from selected options. %w", err)
 		}
-		options = append(options, option)
+		poll.Options = append(poll.Options, option)
 	}
 
-	return Poll{Title: title, Options: options}, nil
+	return poll, nil
 }

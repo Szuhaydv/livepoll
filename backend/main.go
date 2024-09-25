@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
@@ -21,9 +22,10 @@ func testHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 type Poll struct {
-	Title    string   `json:"title"`
-	Duration *string  `json:"duration,omitempty"`
-	Options  []Option `json:"options"`
+	Title     string    `json:"title"`
+	Duration  *string   `json:"duration,omitempty"`
+	Options   []Option  `json:"options"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 type Option struct {
@@ -77,8 +79,8 @@ func handleGetPoll(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, selectErr.Error(), http.StatusBadRequest)
 		return
 	}
-	fmt.Println(poll)
 	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(poll)
 }
 
 const (
