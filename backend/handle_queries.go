@@ -92,15 +92,31 @@ func updateVotes(db *sql.DB, vote Vote) error {
 		return fmt.Errorf("Error executing sql query for inserting vote: %w", err)
 	}
 
-	queryInBytes2, err := os.ReadFile("./queries/update_num_of_votes.sql")
+	tx, err := db.Begin()
+	if err != nil {
+		return fmt.Errorf("Error beginning transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	queryInBytes2, err := os.ReadFile("./queries/select_votes_for_update.sql")
+	if err != nil {
+		return fmt.Errorf("Error reading sql query selecting for update. %w", err)
+	}
+
+	_, err = tx.Exec(string(queryInBytes2), vote.OptionID)
+	if err != nil {
+		return fmt.Errorf("Error executing sql query select for update. %w", err)
+	}
+
+	queryInBytes3, err := os.ReadFile("./queries/update_num_of_votes.sql")
 	if err != nil {
 		return fmt.Errorf("Error reading sql query for updating number of votes. %w", err)
 	}
 
-	_, err = db.Exec(string(queryInBytes2), vote.OptionID)
+	_, err = tx.Exec(string(queryInBytes3), vote.OptionID)
 	if err != nil {
 		return fmt.Errorf("Error executing sql query for updating number of votes. %w", err)
 	}
 
-	return nil
+	return tx.Commit()
 }
