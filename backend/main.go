@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 
 	_ "github.com/lib/pq"
@@ -26,7 +27,8 @@ type Poll struct {
 }
 
 type Option struct {
-	Name string `json:"name"`
+	ID   uuid.UUID `json:"id"`
+	Name string    `json:"name"`
 }
 
 func handlePollCreate(w http.ResponseWriter, r *http.Request) {
@@ -57,6 +59,26 @@ func handlePollCreate(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to insert options", http.StatusInternalServerError)
 		return
 	}
+}
+
+func handleGetPoll(w http.ResponseWriter, r *http.Request) {
+	pollID := r.URL.Query().Get("id")
+	if pollID == "" {
+		http.Error(w, "Missing query param id (poll id) in request", http.StatusBadRequest)
+		return
+	}
+	id, err := uuid.Parse(pollID)
+	if err != nil {
+		http.Error(w, "Specified id query paramter not in acceptable uuid format", http.StatusBadRequest)
+		return
+	}
+	poll, selectErr := selectTitleAndOptions(db, id)
+	if selectErr != nil {
+		http.Error(w, selectErr.Error(), http.StatusBadRequest)
+		return
+	}
+	fmt.Println(poll)
+	w.Header().Set("Content-Type", "application/json")
 }
 
 const (
@@ -117,6 +139,7 @@ func main() {
 	// cathcall route serves Svelte SPA frontend
 
 	router.HandleFunc("/create-poll", handlePollCreate).Methods("POST")
+	router.HandleFunc("/polls", handleGetPoll).Methods("GET")
 	router.PathPrefix("/").HandlerFunc(testHandler)
 
 	srv := &http.Server{
