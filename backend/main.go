@@ -2,12 +2,14 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
-	"github.com/gorilla/mux"
 	"log"
 	"net/http"
 	"os"
 	"path/filepath"
+
+	"github.com/gorilla/mux"
 
 	_ "github.com/lib/pq"
 )
@@ -15,6 +17,42 @@ import (
 func testHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 	http.ServeFile(w, r, filepath.Join("..", "public", "index.html"))
+}
+
+type Poll struct {
+	Title    string   `json:"title"`
+	Duration *string  `json:"duration,omitempty"`
+	Options  []Option `json:"options"`
+}
+
+type Option struct {
+	Name string `json:"name"`
+}
+
+func handlePollCreate(w http.ResponseWriter, r *http.Request) {
+	var poll Poll
+
+	err := json.NewDecoder(r.Body).Decode(&poll)
+	if err != nil {
+		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+		return
+	}
+
+	if len(poll.Options) < 2 {
+		http.Error(w, "Insufficient amount of options specified (min. 2)", http.StatusBadRequest)
+		return
+	}
+
+	pollID, createErr := insertPoll(db, poll)
+	if createErr != nil {
+		http.Error(w, "Failed to insert poll", http.StatusInternalServerError)
+		return
+	}
+	err = insertOptions(db, pollID, poll.Options)
+	if err != nil {
+		http.Error(w, "Failed to insert options", http.StatusInternalServerError)
+		return
+	}
 }
 
 const (
@@ -25,7 +63,7 @@ const (
 	dbname   = "livepoll_test"
 )
 
-func executeQuery(db *sql.DB, filepath string) error {
+func executeQuery(filepath string) error {
 	query, err := os.ReadFile(filepath)
 	if err != nil {
 		log.Fatal(err)
@@ -38,12 +76,15 @@ func executeQuery(db *sql.DB, filepath string) error {
 	return nil
 }
 
+var db *sql.DB
+
 func main() {
 	// creating DB connection
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 		host, port, user, password, dbname)
 
-	db, err := sql.Open("postgres", psqlInfo)
+	var err error
+	db, err = sql.Open("postgres", psqlInfo)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -56,17 +97,11 @@ func main() {
 	fmt.Println("Successfully connected to the database!")
 
 	// initializing tables
-	err = tablesInit(db)
+	err = tablesInit()
 	if err != nil {
 		log.Fatal(err)
 	}
 	fmt.Println("Initialized tables")
-
-	// TEST INSERT
-	err = insertPoll(db, "150 second", "Test poll insert")
-	if err != nil {
-		fmt.Println("Error doing test insert")
-	}
 
 	// ROUTING
 	router := mux.NewRouter()
@@ -78,6 +113,7 @@ func main() {
 	// cathcall route serves Svelte SPA frontend
 
 	router.PathPrefix("/").HandlerFunc(testHandler)
+	router.HandleFunc("/create-poll", handlePollCreate).Methods("POST")
 
 	srv := &http.Server{
 		Handler: router,
