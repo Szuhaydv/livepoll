@@ -33,6 +33,11 @@ type Option struct {
 	Name string    `json:"name"`
 }
 
+type Vote struct {
+	VoterID  string    `json:"voter_id"`
+	OptionID uuid.UUID `json:"option_id"`
+}
+
 func handlePollCreate(w http.ResponseWriter, r *http.Request) {
 	var poll Poll
 
@@ -74,13 +79,29 @@ func handleGetPoll(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Specified id query paramter not in acceptable uuid format", http.StatusBadRequest)
 		return
 	}
-	poll, selectErr := selectTitleAndOptions(db, id)
+	poll, selectErr := getPoll(db, id)
 	if selectErr != nil {
 		http.Error(w, selectErr.Error(), http.StatusBadRequest)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(poll)
+}
+
+func handleVote(w http.ResponseWriter, r *http.Request) {
+	var vote Vote
+
+	err := json.NewDecoder(r.Body).Decode(&vote)
+	if err != nil {
+		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+		return
+	}
+
+	err = updateVotes(db, vote)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error updating votes: %v", err), http.StatusInternalServerError)
+		return
+	}
 }
 
 const (
@@ -142,6 +163,7 @@ func main() {
 
 	router.HandleFunc("/create-poll", handlePollCreate).Methods("POST")
 	router.HandleFunc("/polls", handleGetPoll).Methods("GET")
+	router.HandleFunc("/vote", handleVote).Methods("POST")
 	router.PathPrefix("/").HandlerFunc(testHandler)
 
 	srv := &http.Server{

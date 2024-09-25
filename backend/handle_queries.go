@@ -77,7 +77,7 @@ func getPoll(db *sql.DB, pollID uuid.UUID) (Poll, error) {
 	return poll, nil
 }
 
-func vote(db *sql.DB, vote Vote) error {
+func updateVotes(db *sql.DB, vote Vote) error {
 
 	queryInBytes1, err := os.ReadFile("./queries/insert_vote.sql")
 	if err != nil {
