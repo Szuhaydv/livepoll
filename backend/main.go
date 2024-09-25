@@ -62,6 +62,12 @@ func main() {
 	}
 	fmt.Println("Initialized tables")
 
+	// TEST INSERT
+	err = insertPoll(db, "150 second", "Test poll insert")
+	if err != nil {
+		fmt.Println("Error doing test insert")
+	}
+
 	// ROUTING
 	router := mux.NewRouter()
 
