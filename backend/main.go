@@ -138,6 +138,10 @@ func main() {
 	}
 	fmt.Println("Initialized tables")
 
+	// creating function and trigger for realtime
+	executeQuery("./queries/function_create.sql", true)
+	executeQuery("./queries/trigger_create.sql", true)
+
 	// ROUTING
 	router := mux.NewRouter()
 
