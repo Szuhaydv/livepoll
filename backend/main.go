@@ -42,10 +42,14 @@ func handlePollCreate(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Insufficient amount of options specified (min. 2)", http.StatusBadRequest)
 		return
 	}
+	if poll.Duration == nil {
+		defaultDuration := "120 second"
+		poll.Duration = &defaultDuration
+	}
 
 	pollID, createErr := insertPoll(db, poll)
 	if createErr != nil {
-		http.Error(w, "Failed to insert poll", http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("Failed to insert poll %v", createErr), http.StatusInternalServerError)
 		return
 	}
 	err = insertOptions(db, pollID, poll.Options)
@@ -112,8 +116,8 @@ func main() {
 
 	// cathcall route serves Svelte SPA frontend
 
-	router.PathPrefix("/").HandlerFunc(testHandler)
 	router.HandleFunc("/create-poll", handlePollCreate).Methods("POST")
+	router.PathPrefix("/").HandlerFunc(testHandler)
 
 	srv := &http.Server{
 		Handler: router,

@@ -29,12 +29,12 @@ func insertOptions(db *sql.DB, pollID uuid.UUID, options []Option) error {
 	for _, option := range options {
 		sqlBytes, err := os.ReadFile("./queries/insert_option.sql")
 		if err != nil {
-			fmt.Errorf("Error reading sql query for insert into options. %w", err)
+			return fmt.Errorf("Error reading sql query for insert into options. %w", err)
 		}
 
 		_, err = db.Exec(string(sqlBytes), pollID, option.Name)
 		if err != nil {
-			fmt.Errorf("Error executing sql query for insert into options. %w", err)
+			return fmt.Errorf("Error executing sql query for insert into options. %w", err)
 		}
 	}
 	return nil
