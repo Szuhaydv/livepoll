@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 func insertPoll(db *sql.DB, poll Poll) (uuid.UUID, error) {
@@ -40,7 +41,7 @@ func insertOptions(db *sql.DB, pollID uuid.UUID, options []Option) error {
 	return nil
 }
 
-func selectTitleAndOptions(db *sql.DB, pollID uuid.UUID) (Poll, error) {
+func getPoll(db *sql.DB, pollID uuid.UUID) (Poll, error) {
 	var poll Poll
 
 	queryInBytes1, err := os.ReadFile("./queries/select_poll_metadata.sql")
@@ -74,4 +75,32 @@ func selectTitleAndOptions(db *sql.DB, pollID uuid.UUID) (Poll, error) {
 	}
 
 	return poll, nil
+}
+
+func vote(db *sql.DB, vote Vote) error {
+
+	queryInBytes1, err := os.ReadFile("./queries/insert_vote.sql")
+	if err != nil {
+		return fmt.Errorf("Error reading sql query for inserting vote. %w", err)
+	}
+
+	_, err = db.Exec(string(queryInBytes1), vote.VoterID, vote.OptionID)
+	if err != nil {
+		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
+			return fmt.Errorf("Vote from voterID %s already exists: %w", vote.VoterID, err)
+		}
+		return fmt.Errorf("Error executing sql query for inserting vote: %w", err)
+	}
+
+	queryInBytes2, err := os.ReadFile("./queries/update_num_of_votes.sql")
+	if err != nil {
+		return fmt.Errorf("Error reading sql query for updating number of votes. %w", err)
+	}
+
+	_, err = db.Exec(string(queryInBytes2), vote.OptionID)
+	if err != nil {
+		return fmt.Errorf("Error executing sql query for updating number of votes. %w", err)
+	}
+
+	return nil
 }
