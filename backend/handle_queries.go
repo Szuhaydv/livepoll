@@ -39,3 +39,40 @@ func insertOptions(db *sql.DB, pollID uuid.UUID, options []Option) error {
 	}
 	return nil
 }
+
+func selectTitleAndOptions(db *sql.DB, pollID uuid.UUID) (Poll, error) {
+	var title string
+	var options []Option
+
+	queryInBytes1, err := os.ReadFile("./queries/select_poll_title.sql")
+	if err != nil {
+		return Poll{}, fmt.Errorf("Error reading sql query for select poll title. %w", err)
+	}
+
+	err = db.QueryRow(string(queryInBytes1), pollID).Scan(&title)
+	if err != nil {
+		return Poll{}, fmt.Errorf("Error executing sql query for selecet poll title. %w", err)
+	}
+
+	queryInBytes2, err := os.ReadFile("./queries/select_options.sql")
+	if err != nil {
+		return Poll{}, fmt.Errorf("Error reading sql query for select from options. %w", err)
+	}
+
+	rows, execErr := db.Query(string(queryInBytes2), pollID)
+	if execErr != nil {
+		return Poll{}, fmt.Errorf("Error executing sql query for select from options. %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var option Option
+		err = rows.Scan(&option.ID, &option.Name)
+		if err != nil {
+			return Poll{}, fmt.Errorf("Error scanning row from selected options. %w", err)
+		}
+		options = append(options, option)
+	}
+
+	return Poll{Title: title, Options: options}, nil
+}
