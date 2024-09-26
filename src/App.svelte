@@ -1,16 +1,16 @@
 <script>
 	import Router from "svelte-spa-router";
 	import Home from "./routeViews/Home.svelte";
-	import PollCreator from "./routeViews/PollCreator.svelte";
+	import Poll from "./routeViews/Poll.svelte";
 	import PollResults from "./routeViews/PollResults.svelte";
 	import PollLink from "./routeViews/PollLink.svelte";
 
 	const routes = {
 		"/": Home,
-		"/creator": PollCreator,
+		"/creator": Poll,
 		"/link/:id": PollLink,
-		"/fill-poll/:id": PollCreator,
-		"/results": PollResults,
+		"/fill-poll/:id": Poll,
+		"/results/:id": PollResults,
 	};
 </script>
 

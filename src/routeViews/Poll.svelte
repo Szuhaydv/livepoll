@@ -93,9 +93,7 @@
 				const errMessage = await response.text();
 				console.error("Error sending vote: ", errMessage);
 			} else {
-				const data = await response.json();
-				console.log(data);
-				// Navigate to the results view
+				push("/results/" + params.id);
 			}
 		} catch (error) {
 			console.error("An error has happend: ", error);
