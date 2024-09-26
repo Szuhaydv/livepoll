@@ -65,12 +65,13 @@ func handlePollCreate(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to insert options", http.StatusInternalServerError)
 		return
 	}
+
 }
 
 func handleGetPoll(w http.ResponseWriter, r *http.Request) {
-	pollID := r.URL.Query().Get("id")
+	pollID := mux.Vars(r)["pollID"]
 	if pollID == "" {
-		http.Error(w, "Missing query param id (poll id) in request", http.StatusBadRequest)
+		http.Error(w, "Missing path param (pollID) in request", http.StatusBadRequest)
 		return
 	}
 	id, err := uuid.Parse(pollID)
@@ -210,7 +211,7 @@ func main() {
 	// cathcall route serves Svelte SPA frontend
 
 	router.HandleFunc("/create-poll", handlePollCreate).Methods("POST")
-	router.HandleFunc("/polls", handleGetPoll).Methods("GET")
+	router.HandleFunc("/polls/{pollID}", handleGetPoll).Methods("GET")
 	router.HandleFunc("/vote", handleVote).Methods("POST")
 	router.HandleFunc("/results/{pollID}", handleSSE).Methods("GET")
 	router.PathPrefix("/").HandlerFunc(testHandler)
