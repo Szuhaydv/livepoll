@@ -21,7 +21,20 @@
 			eventSource = new EventSource(sseEndpoint);
 
 		eventSource.onmessage = (event) => {
-			console.log("New message:", event.data);
+			try {
+				const data = JSON.parse(event.data);
+				const id = poll.options.findIndex(
+					(el) => el.id == data.option_id,
+				);
+				if (id == -1) {
+					throw new Error("Update arrived for non-existing option");
+				}
+				poll.options[id].votes += 1;
+				totalVotes += 1;
+				calculatePercentages();
+			} catch (error) {
+				console.error("Error parsing JSON: ", error);
+			}
 		};
 
 		eventSource.onerror = (error) => {
@@ -37,6 +50,7 @@
 	});
 
 	$: poll = new Poll("", 0, [], "");
+	$: totalVotes = 0;
 	//let intervalRef = null;
 	//function tick() {
 	//	intervalRef = setInterval(() => {
@@ -66,9 +80,17 @@
 				data.options,
 				data.created_at,
 			);
-			console.log(poll);
+			for (const option of data.options) {
+				totalVotes += option.votes;
+			}
+			calculatePercentages();
 		} catch (error) {
 			console.error("Something went wrong: ", error);
+		}
+	}
+	function calculatePercentages() {
+		for (const option of poll.options) {
+			option.percentage = Math.round((option.votes / totalVotes) * 100);
 		}
 	}
 </script>
