@@ -1,1 +1,1 @@
-SELECT id, name FROM options WHERE poll_id = $1;
+SELECT id, name, votes FROM options WHERE poll_id = $1;

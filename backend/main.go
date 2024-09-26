@@ -29,8 +29,9 @@ type Poll struct {
 }
 
 type Option struct {
-	ID   uuid.UUID `json:"id"`
-	Name string    `json:"name"`
+	ID    uuid.UUID `json:"id"`
+	Name  string    `json:"name"`
+	Votes int       `json:"votes"`
 }
 
 type Vote struct {

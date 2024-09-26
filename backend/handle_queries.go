@@ -77,7 +77,7 @@ func getPoll(pollID uuid.UUID) (Poll, error) {
 
 	for rows.Next() {
 		var option Option
-		err = rows.Scan(&option.ID, &option.Name)
+		err = rows.Scan(&option.ID, &option.Name, &option.Votes)
 		if err != nil {
 			return Poll{}, fmt.Errorf("Error scanning row from selected options. %w", err)
 		}
