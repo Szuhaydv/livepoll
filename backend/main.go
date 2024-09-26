@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -106,6 +107,10 @@ func handleVote(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request payload", http.StatusBadRequest)
 		return
 	}
+
+	ip := r.RemoteAddr[:strings.LastIndex(r.RemoteAddr, ":")]
+	vote.VoterID = ip
+
 	err = updateVotes(vote)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Error updating votes: %v", err), http.StatusInternalServerError)
