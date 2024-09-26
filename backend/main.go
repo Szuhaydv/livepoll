@@ -95,7 +95,6 @@ func handleVote(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request payload", http.StatusBadRequest)
 		return
 	}
-	fmt.Println(vote)
 	err = updateVotes(vote)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Error updating votes: %v", err), http.StatusInternalServerError)
@@ -139,9 +138,20 @@ func handleSSE(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newChan := make(chan string)
-
+	// Validation
 	pollID := mux.Vars(r)["pollID"]
+	_, err := uuid.Parse(pollID)
+	if err != nil {
+		http.Error(w, "Not valid uuid", http.StatusBadRequest)
+		return
+	}
+	err = executeQuery("./queries/select_exists_poll.sql", false)
+	if err != nil {
+		http.Error(w, "Poll with specified ID does not exist", http.StatusBadRequest)
+		return
+	}
+
+	newChan := make(chan string)
 	go listenToNotifications(newChan, pollID)
 
 	// Listen for notifications on the notificationChannel and send them to the client
@@ -187,14 +197,8 @@ func main() {
 	fmt.Println("Initialized tables")
 
 	// creating function and trigger for realtime
-	err = executeQuery("./queries/function_create.sql", true)
-	if err != nil {
-		fmt.Println("Error creating function")
-	}
-	err = executeQuery("./queries/trigger_create.sql", true)
-	if err != nil {
-		fmt.Println("Error creating trigger")
-	}
+	executeQuery("./queries/function_create.sql", true)
+	executeQuery("./queries/trigger_create.sql", true)
 
 	// ROUTING
 	router := mux.NewRouter()
