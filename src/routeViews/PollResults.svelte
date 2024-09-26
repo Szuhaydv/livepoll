@@ -3,10 +3,20 @@
 
 	import { onMount, onDestroy } from "svelte";
 
+	class Poll {
+		constructor(title, duration, options, createdAt) {
+			this.title = title;
+			this.duration = duration;
+			this.options = options;
+			this.createdAt = createdAt;
+		}
+	}
+
 	let eventSource;
 	export let params;
 
 	onMount(() => {
+		fetchPoll();
 		const sseEndpoint = "http://localhost:7777/results/" + params.id,
 			eventSource = new EventSource(sseEndpoint);
 
@@ -26,39 +36,62 @@
 		}
 	});
 
-	const options = [];
-	const percentages = [];
-	$: duration = 5;
-	let intervalRef = null;
-	function tick() {
-		intervalRef = setInterval(() => {
-			if (duration == 0 && intervalRef) {
-				clearInterval(intervalRef);
+	$: poll = new Poll("", 0, [], "");
+	//let intervalRef = null;
+	//function tick() {
+	//	intervalRef = setInterval(() => {
+	//		if (duration == 0 && intervalRef) {
+	//			clearInterval(intervalRef);
+	//			return;
+	//		}
+	//		duration -= 1;
+	//	}, 1000);
+	//}
+	//tick();
+	async function fetchPoll() {
+		try {
+			const getPollResponse = await fetch("/polls/" + params.id, {
+				method: "GET",
+			});
+			if (!getPollResponse.ok) {
+				const errMessage = await getPollResponse.text();
+				console.error("Error getting poll: ", errMessage);
 				return;
 			}
-			duration -= 1;
-		}, 1000);
+
+			const data = await getPollResponse.json();
+			poll = new Poll(
+				data.title,
+				data.duration,
+				data.options,
+				data.created_at,
+			);
+			console.log(poll);
+		} catch (error) {
+			console.error("Something went wrong: ", error);
+		}
 	}
-	tick();
 </script>
 
 <h1 class="text-8xl text-yellow-400 text-center pt-[4vh] font-actionJackson">
 	Livepoll
 </h1>
-<Note title="What exercise should I do?" titleMargin={2}>
+<Note title={poll.title} titleMargin={2}>
 	<div class="w-full flex justify-center items-center gap-5 mb-8">
 		<img src="/public/assets/clock.svg" alt="Clock icon" />
 		<p>
-			{Math.floor(duration / 60)}:{String(duration % 60).padStart(2, "0")}
+			<!-- {Math.floor(poll.duration / 60)}:{String(
+				poll.duration % 60,
+			).padStart(2, "0")} -->
 		</p>
 	</div>
 	<ul class="flex flex-col">
-		{#each options as option, index}
+		{#each poll.options as option, index}
 			<li>
 				<p
 					class="flex items-center border-t-2 h-16 border-slate-400 w-full pl-12"
 				>
-					{option}
+					{option.name}
 				</p>
 				<div
 					class="flex items-center border-t-2 h-16 border-slate-400 w-full pl-12 {index ==
@@ -68,9 +101,11 @@
 				>
 					<div
 						class="loading-bar rounded-full h-8 mr-4 border border-black"
-						style="width: {percentages[index]}%"
+						style="width: {poll.options[index].percentage}%"
 					></div>
-					<span class="text-nowrap">{percentages[index]} %</span>
+					<span class="text-nowrap"
+						>{poll.options[index].percentage} %</span
+					>
 				</div>
 			</li>
 		{/each}
