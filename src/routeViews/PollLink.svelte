@@ -3,7 +3,7 @@
 	import Button from "../components/Button.svelte";
 	export let params;
 
-	const link = "https://example.com/results/" + params.id;
+	const link = "https://example.com/#/fill-poll/" + params.id;
 
 	function copyLink() {
 		navigator.clipboard
