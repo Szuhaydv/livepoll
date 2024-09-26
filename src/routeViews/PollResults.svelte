@@ -1,5 +1,31 @@
 <script>
 	import Note from "../components/Note.svelte";
+
+	import { onMount, onDestroy } from "svelte";
+
+	let eventSource;
+	export let params;
+
+	onMount(() => {
+		const sseEndpoint = "http://localhost:7777/results/" + params.id,
+			eventSource = new EventSource(sseEndpoint);
+
+		eventSource.onmessage = (event) => {
+			console.log("New message:", event.data);
+		};
+
+		eventSource.onerror = (error) => {
+			console.error("EventSource failed:", error);
+			eventSource.close();
+		};
+	});
+
+	onDestroy(() => {
+		if (eventSource) {
+			eventSource.close();
+		}
+	});
+
 	const options = [];
 	const percentages = [];
 	$: duration = 5;
