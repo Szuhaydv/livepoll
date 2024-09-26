@@ -1,8 +1,16 @@
 <script>
-	export let title;
+	import { onMount } from "svelte";
+	import { location } from "svelte-spa-router";
+	export let title = "Title";
 	export let titleMargin = 10;
 	export let isTitleEditable = false;
 	let titleRef;
+	onMount(() => {
+		if ($location === "/creator") {
+			titleRef.focus();
+		}
+	});
+	const updateTitle = (e) => (title = e.target.value);
 </script>
 
 <div class="flex flex-col gap-9 items-center justify-center">
@@ -17,6 +25,7 @@
 					type="text"
 					class="text-ellipsis overflow-hidden whitespace-nowrap bg-transparent w-full border-none focus:outline-none font-bangers text-5xl text-center mr-4"
 					bind:this={titleRef}
+					on:input={updateTitle}
 				/>
 				<button
 					class="border-none h-10 w-10"

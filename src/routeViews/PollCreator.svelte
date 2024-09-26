@@ -1,36 +1,54 @@
 <script>
 	import Button from "../components/Button.svelte";
 	import Note from "../components/Note.svelte";
-	$: texts = ["Situps", "Push ups", "Squats", "Pull ups"];
+	import { location } from "svelte-spa-router";
+	import { writable } from "svelte/store";
+
+	$: isTitleEditable = $location === "/creator";
+	const title = writable("");
+	$: isOptionsClickable = $location != "/creator";
+	$: options = [];
 	$: selectedOption = -1;
 	function addOption() {
-		texts = [...texts, ""];
+		options = [...options, ""];
+	}
+	function selectOption(index) {
+		if (isOptionsClickable) {
+			selectedOption = index;
+		}
 	}
 	function deleteOption(index) {
-		texts = [...texts.slice(0, index), ...texts.slice(index + 1)];
+		options = [...options.slice(0, index), ...options.slice(index + 1)];
 	}
 	function focusOption(e) {
 		e.focus();
+	}
+	function updateInput(e, index) {
+		options[index] = e.target.value;
+	}
+	async function createPoll() {
+		console.log($title, options);
 	}
 </script>
 
 <h1 class="text-8xl text-yellow-400 text-center pt-[4vh] font-actionJackson">
 	Livepoll
 </h1>
-<Note title="What exercise should I do?">
+<Note {isTitleEditable} bind:title={$title}>
 	<ul class="flex flex-col">
-		{#each texts as text, index}
+		{#each options as option, index}
 			<li
 				class="flex items-center border-t-2 h-16 border-slate-400 w-full pl-12 last:border-b-2"
 			>
 				<div
 					class="relative h-10"
-					on:click={() => (selectedOption = index)}
+					on:click={() => selectOption(index)}
 					on:keydown
 				>
 					<input
 						type="radio"
-						class="appearance-none w-10 h-10 rounded-full bg-white border border-black cursor-pointer drop-shadow-lg"
+						class="appearance-none w-10 h-10 rounded-full bg-white border border-black drop-shadow-lg"
+						class:curor-pointer={isOptionsClickable}
 						name="choice"
 					/>
 					{#if selectedOption == index}
@@ -42,8 +60,9 @@
 				<input
 					class="mx-6 text-ellipsis overflow-hidden whitespace-nowrap bg-transparent w-full border-none focus:outline-none"
 					type="text"
-					value={text}
+					value={option}
 					use:focusOption={index}
+					on:input={(e) => updateInput(e, index)}
 				/>
 				<button
 					class="ml-auto mr-12 border-none"
@@ -64,6 +83,10 @@
 		</button>
 	</div>
 	<div class="w-full flex justify-center" slot="just-below">
-		<Button url="#/link" text="Create Poll"></Button>
+		<Button
+			actionButton={true}
+			action={() => createPoll()}
+			text="Create Poll"
+		></Button>
 	</div>
 </Note>

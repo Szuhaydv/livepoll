@@ -1,7 +1,7 @@
 <script>
 	import Note from "../components/Note.svelte";
 	import Button from "../components/Button.svelte";
-	let link = "https://www.something.com";
+	let link = params.id;
 
 	function copyLink() {
 		navigator.clipboard

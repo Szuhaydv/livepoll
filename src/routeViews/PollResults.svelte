@@ -1,7 +1,7 @@
 <script>
 	import Note from "../components/Note.svelte";
-	const texts = ["Situps", "Push ups", "Squats", "Pull ups"];
-	const percentages = [22, 11, 33, 33];
+	const options = [];
+	const percentages = [];
 	$: duration = 5;
 	let intervalRef = null;
 	function tick() {
@@ -27,16 +27,16 @@
 		</p>
 	</div>
 	<ul class="flex flex-col">
-		{#each texts as text, index}
+		{#each options as option, index}
 			<li>
 				<p
 					class="flex items-center border-t-2 h-16 border-slate-400 w-full pl-12"
 				>
-					{text}
+					{option}
 				</p>
 				<div
 					class="flex items-center border-t-2 h-16 border-slate-400 w-full pl-12 {index ==
-					texts.length - 1
+					option.length - 1
 						? 'border-b-2'
 						: ''}"
 				>
