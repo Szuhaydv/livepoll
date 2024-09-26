@@ -23,8 +23,10 @@
 				title.set(data.title);
 				for (const option of data.options) {
 					options.push(option.name);
+					optionIDs.push(option.id);
 				}
 				options = options;
+				optionIDs = optionIDs;
 			} catch (error) {
 				console.error("Something went wrong: ", error);
 			}
@@ -34,6 +36,7 @@
 	$: isCreatingPoll = $location === "/creator";
 	const title = writable("");
 	$: options = [];
+	$: optionIDs = [];
 	$: selectedOption = -1;
 	function addOption() {
 		options = [...options, ""];
@@ -66,7 +69,7 @@
 				}),
 			});
 			if (!response.ok) {
-				const errMessage = response.text();
+				const errMessage = await response.text();
 				console.error("Error creating poll: ", errMessage);
 			} else {
 				const data = await response.json();
@@ -74,6 +77,28 @@
 			}
 		} catch (error) {
 			console.error("An error has happened: ", error);
+		}
+	}
+	async function submitVote() {
+		// handle when nothing is selected
+		if (selectedOption == -1) {
+			return;
+		}
+		try {
+			const response = await fetch("/vote", {
+				method: "POST",
+				body: JSON.stringify({ option_id: optionIDs[selectedOption] }),
+			});
+			if (!response.ok) {
+				const errMessage = await response.text();
+				console.error("Error sending vote: ", errMessage);
+			} else {
+				const data = await response.json();
+				console.log(data);
+				// Navigate to the results view
+			}
+		} catch (error) {
+			console.error("An error has happend: ", error);
 		}
 	}
 </script>
@@ -141,7 +166,7 @@
 	<div class="w-full flex justify-center" slot="just-below">
 		<Button
 			actionButton={true}
-			action={() => createPoll()}
+			action={() => (isCreatingPoll ? createPoll() : submitVote())}
 			text={isCreatingPoll ? "Create Poll" : "Submit"}
 		></Button>
 	</div>
