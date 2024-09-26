@@ -1,7 +1,7 @@
 <script>
 	import Button from "../components/Button.svelte";
 	import Note from "../components/Note.svelte";
-	import { location } from "svelte-spa-router";
+	import { location, push } from "svelte-spa-router";
 	import { writable } from "svelte/store";
 
 	$: isTitleEditable = $location === "/creator";
@@ -36,9 +36,11 @@
 			body: JSON.stringify({ title: $title, options: formattedOptions }),
 		});
 		if (!response.ok) {
+			// handle error later
 			console.error("Error creating poll:", response.body);
 		} else {
-			console.log("Poll created successfully:", await response.json());
+			const data = await response.json();
+			push("/link/" + data.id);
 		}
 	}
 </script>

@@ -8,8 +8,9 @@
 	const routes = {
 		"/": Home,
 		"/creator": PollCreator,
+		"/link/:id": PollLink,
+		"/fill-poll/:id": PollCreator,
 		"/results": PollResults,
-		"/link": PollLink,
 	};
 </script>
 
