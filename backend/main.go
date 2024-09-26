@@ -161,7 +161,7 @@ func handleSSE(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Not valid uuid", http.StatusBadRequest)
 		return
 	}
-	err = executeQuery("./queries/select_exists_poll.sql", false)
+	err = executeQuery("./queries/select_exists_poll.sql", false, pollID)
 	if err != nil {
 		http.Error(w, "Poll with specified ID does not exist", http.StatusBadRequest)
 		return
