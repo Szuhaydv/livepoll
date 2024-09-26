@@ -12,7 +12,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 
-	_ "github.com/lib/pq"
+	"github.com/lib/pq"
 )
 
 func testHandler(w http.ResponseWriter, r *http.Request) {
@@ -95,11 +95,59 @@ func handleVote(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request payload", http.StatusBadRequest)
 		return
 	}
-
+	fmt.Println(vote)
 	err = updateVotes(vote)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Error updating votes: %v", err), http.StatusInternalServerError)
 		return
+	}
+}
+
+func listenToNotifications(notifyChan chan<- string, pollID string) error {
+	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
+		host, port, user, password, dbname)
+	channelName := "poll_" + pollID
+
+	listener := pq.NewListener(psqlInfo, 10*time.Second, time.Minute, nil)
+
+	if err := listener.Listen(channelName); err != nil {
+		return err
+	}
+
+	log.Println("Listening for PostgreSQL notifications...")
+	for {
+		select {
+		case notification := <-listener.Notify:
+			if notification != nil {
+				notifyChan <- notification.Extra
+			}
+		case <-time.After(90 * time.Second):
+			go listener.Ping()
+		}
+	}
+}
+
+func handleSSE(w http.ResponseWriter, r *http.Request) {
+
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("Connection", "keep-alive")
+
+	flusher, ok := w.(http.Flusher)
+	if !ok {
+		http.Error(w, "Streaming unsupported!", http.StatusInternalServerError)
+		return
+	}
+
+	newChan := make(chan string)
+
+	pollID := mux.Vars(r)["pollID"]
+	go listenToNotifications(newChan, pollID)
+
+	// Listen for notifications on the notificationChannel and send them to the client
+	for notification := range newChan {
+		fmt.Fprintf(w, "data: %s\n\n", notification)
+		flusher.Flush() // Push data to the client
 	}
 }
 
@@ -139,8 +187,14 @@ func main() {
 	fmt.Println("Initialized tables")
 
 	// creating function and trigger for realtime
-	executeQuery("./queries/function_create.sql", true)
-	executeQuery("./queries/trigger_create.sql", true)
+	err = executeQuery("./queries/function_create.sql", true)
+	if err != nil {
+		fmt.Println("Error creating function")
+	}
+	err = executeQuery("./queries/trigger_create.sql", true)
+	if err != nil {
+		fmt.Println("Error creating trigger")
+	}
 
 	// ROUTING
 	router := mux.NewRouter()
@@ -154,6 +208,7 @@ func main() {
 	router.HandleFunc("/create-poll", handlePollCreate).Methods("POST")
 	router.HandleFunc("/polls", handleGetPoll).Methods("GET")
 	router.HandleFunc("/vote", handleVote).Methods("POST")
+	router.HandleFunc("/results/{pollID}", handleSSE).Methods("GET")
 	router.PathPrefix("/").HandlerFunc(testHandler)
 
 	srv := &http.Server{
