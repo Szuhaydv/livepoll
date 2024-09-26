@@ -66,6 +66,16 @@ func handlePollCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// return the poll ID
+	response := struct {
+		ID uuid.UUID `json:"id"`
+	}{
+		ID: pollID,
+	}
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		http.Error(w, "Failed to encode pollID json", http.StatusInternalServerError)
+	}
 }
 
 func handleGetPoll(w http.ResponseWriter, r *http.Request) {
