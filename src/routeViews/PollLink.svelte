@@ -1,12 +1,14 @@
 <script>
 	import Note from "../components/Note.svelte";
 	import Button from "../components/Button.svelte";
-	let link = params.id;
+	export let params;
+
+	const link = "https://example.com/results/" + params.id;
 
 	function copyLink() {
 		navigator.clipboard
 			.writeText(link)
-			.catch((err) => console.log("Colud not copy text", err));
+			.catch((err) => console.log("Could not copy text", err));
 	}
 </script>
 
