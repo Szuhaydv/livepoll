@@ -27,7 +27,19 @@
 		options[index] = e.target.value;
 	}
 	async function createPoll() {
-		console.log($title, options);
+		const formattedOptions = options.map((option) => ({ name: option }));
+		const response = await fetch("/create-poll", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({ title: $title, options: formattedOptions }),
+		});
+		if (!response.ok) {
+			console.error("Error creating poll:", response.body);
+		} else {
+			console.log("Poll created successfully:", await response.json());
+		}
 	}
 </script>
 
