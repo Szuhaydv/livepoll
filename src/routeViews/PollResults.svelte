@@ -18,8 +18,8 @@
 
 	onMount(() => {
 		fetchPoll();
-		const sseEndpoint = "http://localhost:7777/results/" + params.id,
-			eventSource = new EventSource(sseEndpoint);
+		const sseEndpoint = "http://localhost:7777/results/" + params.id;
+		eventSource = new EventSource(sseEndpoint);
 
 		eventSource.onmessage = (event) => {
 			try {
@@ -42,12 +42,6 @@
 			console.error("EventSource failed:", error);
 			eventSource.close();
 		};
-	});
-
-	onDestroy(() => {
-		if (eventSource) {
-			eventSource.close();
-		}
 	});
 
 	$: poll = new Poll("", 0, [], "");
@@ -125,6 +119,9 @@
 	onDestroy(() => {
 		if (countdownRef) {
 			clearInterval(countdownRef);
+		}
+		if (eventSource) {
+			eventSource.close();
 		}
 	});
 </script>
