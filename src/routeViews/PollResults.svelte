@@ -2,6 +2,7 @@
 	import Note from "../components/Note.svelte";
 
 	import { onMount, onDestroy } from "svelte";
+	import { fade } from "svelte/transition";
 
 	class Poll {
 		constructor(title, duration, options, createdAt) {
@@ -51,6 +52,9 @@
 
 	$: poll = new Poll("", 0, [], "");
 	$: totalVotes = 0;
+	let timeRemaining = null;
+	$: inactivationDate = 0;
+	let countdownRef;
 	//let intervalRef = null;
 	//function tick() {
 	//	intervalRef = setInterval(() => {
@@ -84,15 +88,56 @@
 				totalVotes += option.votes;
 			}
 			calculatePercentages();
+			initTimer();
 		} catch (error) {
 			console.error("Something went wrong: ", error);
 		}
 	}
+	function initTimer() {
+		calculateEndDate();
+		countdownRef = setInterval(() => {
+			updateTimeRemaining();
+		}, 1000);
+	}
 	function calculatePercentages() {
+		const isZero = totalVotes === 0;
 		for (const option of poll.options) {
-			option.percentage = Math.round((option.votes / totalVotes) * 100);
+			if (isZero) {
+				option.percentage = 0;
+			} else {
+				option.percentage = Math.round(
+					(option.votes / totalVotes) * 100,
+				);
+			}
 		}
 	}
+	function calculateEndDate() {
+		const createdAt = new Date(poll.createdAt);
+		const durationInParts = poll.duration.split(":").map(Number);
+		const durationInMs =
+			durationInParts[1] * 60000 + durationInParts[2] * 1000;
+		inactivationDate = new Date(createdAt.getTime() + durationInMs);
+	}
+	function updateTimeRemaining() {
+		const duration = Math.round(
+			(inactivationDate.getTime() - Date.now()) / 1000,
+		);
+		if (duration < 0) {
+			timeRemaining = 0;
+			if (countdownRef) {
+				clearInterval(countdownRef);
+			}
+			return;
+		} else {
+			timeRemaining = duration;
+		}
+	}
+
+	onDestroy(() => {
+		if (countdownRef) {
+			clearInterval(countdownRef);
+		}
+	});
 </script>
 
 <h1 class="text-8xl text-yellow-400 text-center pt-[4vh] font-actionJackson">
@@ -101,11 +146,15 @@
 <Note title={poll.title} titleMargin={2}>
 	<div class="w-full flex justify-center items-center gap-5 mb-8">
 		<img src="/public/assets/clock.svg" alt="Clock icon" />
-		<p>
-			<!-- {Math.floor(poll.duration / 60)}:{String(
-				poll.duration % 60,
-			).padStart(2, "0")} -->
-		</p>
+		{#if timeRemaining !== null}
+			<p transition:fade>
+				{Math.floor(timeRemaining / 60)}:{String(
+					timeRemaining % 60,
+				).padStart(2, "0")}
+			</p>
+		{:else}
+			<p class="opacity-0">0:00</p>
+		{/if}
 	</div>
 	<ul class="flex flex-col">
 		{#each poll.options as option, index}
@@ -150,6 +199,7 @@
 		background-size: 2rem;
 		animation: progress 0.75s linear infinite;
 		box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+		transition: width 0.3s ease-in-out;
 	}
 
 	@keyframes progress {
