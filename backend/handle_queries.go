@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/lib/pq"
@@ -89,8 +90,35 @@ func getPoll(pollID uuid.UUID) (Poll, error) {
 
 // could refactor
 func updateVotes(vote Vote) error {
+	var poll Poll
 
-	err := executeQuery("./queries/insert_vote.sql", false, vote.VoterID, vote.OptionID, vote.PollID)
+	sqlInBytes, err := os.ReadFile("./queries/check_poll_timelimit.sql")
+	if err != nil {
+		return fmt.Errorf("Error reading sql for selecting poll created_at, duration. %w", err)
+	}
+
+	err = db.QueryRow(string(sqlInBytes), vote.PollID).Scan(&poll.CreatedAt, &poll.Duration)
+	if err != nil {
+		return fmt.Errorf("Erorr executing sql for selecting poll created_at, duration. %w", err)
+	}
+	durationStr := *poll.Duration
+
+	formattedDuration := fmt.Sprintf("%sh%sm%ss",
+		durationStr[0:2], durationStr[3:5], durationStr[6:8])
+	duration, parseErr := time.ParseDuration(formattedDuration)
+	if parseErr != nil {
+		return fmt.Errorf("Error parsing duration string into time. %w", parseErr)
+	}
+
+	validUntil := poll.CreatedAt.Add(duration)
+	currentTime := time.Now()
+	isVoteValid := currentTime.Before(validUntil)
+
+	if !isVoteValid {
+		return fmt.Errorf("Poll is closed.")
+	}
+
+	err = executeQuery("./queries/insert_vote.sql", false, vote.VoterID, vote.OptionID, vote.PollID)
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok {
 			if pqErr.Constraint == "unique_vote_per_poll" && pqErr.Code == "23505" {
