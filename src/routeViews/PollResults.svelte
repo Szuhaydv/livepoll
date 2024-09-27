@@ -55,17 +55,6 @@
 	let timeRemaining = null;
 	$: inactivationDate = 0;
 	let countdownRef;
-	//let intervalRef = null;
-	//function tick() {
-	//	intervalRef = setInterval(() => {
-	//		if (duration == 0 && intervalRef) {
-	//			clearInterval(intervalRef);
-	//			return;
-	//		}
-	//		duration -= 1;
-	//	}, 1000);
-	//}
-	//tick();
 	async function fetchPoll() {
 		try {
 			const getPollResponse = await fetch("/polls/" + params.id, {

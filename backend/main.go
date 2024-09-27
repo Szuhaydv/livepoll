@@ -37,6 +37,7 @@ type Option struct {
 type Vote struct {
 	VoterID  string    `json:"voter_id"`
 	OptionID uuid.UUID `json:"option_id"`
+	PollID   uuid.UUID `json:"poll_id"`
 }
 
 func handlePollCreate(w http.ResponseWriter, r *http.Request) {

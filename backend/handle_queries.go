@@ -90,10 +90,12 @@ func getPoll(pollID uuid.UUID) (Poll, error) {
 // could refactor
 func updateVotes(vote Vote) error {
 
-	err := executeQuery("./queries/insert_vote.sql", false, vote.VoterID, vote.OptionID)
+	err := executeQuery("./queries/insert_vote.sql", false, vote.VoterID, vote.OptionID, vote.PollID)
 	if err != nil {
-		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
-			return fmt.Errorf("vote from voterID %s already exists: %w", vote.VoterID, err)
+		if pqErr, ok := err.(*pq.Error); ok {
+			if pqErr.Constraint == "unique_vote_per_poll" && pqErr.Code == "23505" {
+				return fmt.Errorf("Vote from this user already exists on poll %v: %w", vote.PollID, err)
+			}
 		}
 		return err
 	}

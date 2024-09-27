@@ -87,7 +87,10 @@
 		try {
 			const response = await fetch("/vote", {
 				method: "POST",
-				body: JSON.stringify({ option_id: optionIDs[selectedOption] }),
+				body: JSON.stringify({
+					option_id: optionIDs[selectedOption],
+					poll_id: params.id,
+				}),
 			});
 			if (!response.ok) {
 				const errMessage = await response.text();
