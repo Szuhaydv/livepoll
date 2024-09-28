@@ -2,36 +2,39 @@
 	import Note from "../components/Note.svelte";
 
 	import { onMount, onDestroy } from "svelte";
+	import { writable } from "svelte/store";
 	import { fade } from "svelte/transition";
+	import { Poll, fetchPoll } from "../dataService.js";
 
-	class Poll {
-		constructor(title, duration, options, createdAt) {
-			this.title = title;
-			this.duration = duration;
-			this.options = options;
-			this.createdAt = createdAt;
+	class Timer {
+		constructor(timeRemaining, inactivationDate, countdownRef) {
+			this.timeRemaining = timeRemaining;
+			this.inactivationDate = inactivationDate;
+			this.countdownRef = countdownRef;
 		}
 	}
 
 	let eventSource;
 	export let params;
-
+	const poll = writable(new Poll());
+	const timer = writable(new Timer());
+	const totalVotes = writable(0);
 	onMount(() => {
-		fetchPoll();
+		fetchPoll(params.id, poll, timer, totalVotes);
 		const sseEndpoint = "http://localhost:7777/results/" + params.id;
 		eventSource = new EventSource(sseEndpoint);
 
 		eventSource.onmessage = (event) => {
 			try {
 				const data = JSON.parse(event.data);
-				const id = poll.options.findIndex(
+				const id = $poll.options.findIndex(
 					(el) => el.id == data.option_id,
 				);
 				if (id == -1) {
 					throw new Error("Update arrived for non-existing option");
 				}
-				poll.options[id].votes += 1;
-				totalVotes += 1;
+				$poll.options[id].votes += 1;
+				totalVotes.update((n) => n + 1);
 				calculatePercentages();
 			} catch (error) {
 				console.error("Error parsing JSON: ", error);
@@ -44,81 +47,9 @@
 		};
 	});
 
-	$: poll = new Poll("", 0, [], "");
-	$: totalVotes = 0;
-	let timeRemaining = null;
-	$: inactivationDate = 0;
-	let countdownRef;
-	async function fetchPoll() {
-		try {
-			const getPollResponse = await fetch("/polls/" + params.id, {
-				method: "GET",
-			});
-			if (!getPollResponse.ok) {
-				const errMessage = await getPollResponse.text();
-				console.error("Error getting poll: ", errMessage);
-				return;
-			}
-
-			const data = await getPollResponse.json();
-			poll = new Poll(
-				data.title,
-				data.duration,
-				data.options,
-				data.created_at,
-			);
-			for (const option of data.options) {
-				totalVotes += option.votes;
-			}
-			calculatePercentages();
-			initTimer();
-		} catch (error) {
-			console.error("Something went wrong: ", error);
-		}
-	}
-	function initTimer() {
-		calculateEndDate();
-		countdownRef = setInterval(() => {
-			updateTimeRemaining();
-		}, 1000);
-	}
-	function calculatePercentages() {
-		const isZero = totalVotes === 0;
-		for (const option of poll.options) {
-			if (isZero) {
-				option.percentage = 0;
-			} else {
-				option.percentage = Math.round(
-					(option.votes / totalVotes) * 100,
-				);
-			}
-		}
-	}
-	function calculateEndDate() {
-		const createdAt = new Date(poll.createdAt);
-		const durationInParts = poll.duration.split(":").map(Number);
-		const durationInMs =
-			durationInParts[1] * 60000 + durationInParts[2] * 1000;
-		inactivationDate = new Date(createdAt.getTime() + durationInMs);
-	}
-	function updateTimeRemaining() {
-		const duration = Math.round(
-			(inactivationDate.getTime() - Date.now()) / 1000,
-		);
-		if (duration < 0) {
-			timeRemaining = 0;
-			if (countdownRef) {
-				clearInterval(countdownRef);
-			}
-			return;
-		} else {
-			timeRemaining = duration;
-		}
-	}
-
 	onDestroy(() => {
-		if (countdownRef) {
-			clearInterval(countdownRef);
+		if ($timer.countdownRef) {
+			clearInterval($timer.countdownRef);
 		}
 		if (eventSource) {
 			eventSource.close();
@@ -132,10 +63,10 @@
 <Note title={poll.title} titleMargin={2}>
 	<div class="w-full flex justify-center items-center gap-5 mb-8">
 		<img src="/public/assets/clock.svg" alt="Clock icon" />
-		{#if timeRemaining !== null}
+		{#if $timer.timeRemaining !== undefined}
 			<p transition:fade>
-				{Math.floor(timeRemaining / 60)}:{String(
-					timeRemaining % 60,
+				{Math.floor($timer.timeRemaining / 60)}:{String(
+					$timer.timeRemaining % 60,
 				).padStart(2, "0")}
 			</p>
 		{:else}
@@ -143,7 +74,7 @@
 		{/if}
 	</div>
 	<ul class="flex flex-col">
-		{#each poll.options as option, index}
+		{#each $poll.options as option, index}
 			<li>
 				<p
 					class="flex items-center border-t-2 h-16 border-slate-400 w-full pl-12"
@@ -152,17 +83,15 @@
 				</p>
 				<div
 					class="flex items-center border-t-2 h-16 border-slate-400 w-full pl-12 {index ==
-					option.length - 1
+					$poll.options.length - 1
 						? 'border-b-2'
 						: ''}"
 				>
 					<div
 						class="loading-bar rounded-full h-8 mr-4 border border-black"
-						style="width: {poll.options[index].percentage}%"
+						style="width: {option.percentage}%"
 					></div>
-					<span class="text-nowrap"
-						>{poll.options[index].percentage} %</span
-					>
+					<span class="text-nowrap">{option.percentage} %</span>
 				</div>
 			</li>
 		{/each}
