@@ -1,11 +1,3 @@
-//import { writable } from "svelte/store";
-//
-//function createPoll() {
-//	const poll = new Poll("", 0, [], "")
-//
-//	return writable
-//}
-
 export class Poll {
 	constructor(title, duration, options, createdAt) {
 		this.title = title;
@@ -15,9 +7,11 @@ export class Poll {
 	}
 }
 
-export class Temp {
-	constructor() {
-		this.temperature = 23
+export class Timer {
+	constructor(timeRemaining, inactivationDate, countdownRef) {
+		this.timeRemaining = timeRemaining;
+		this.inactivationDate = inactivationDate;
+		this.countdownRef = countdownRef;
 	}
 }
 
@@ -33,7 +27,7 @@ export async function fetchPoll(pollID, poll, timer, totalVotes) {
 		}
 
 		const data = await getPollResponse.json();
-		console.log(data);
+		console.log(data)
 		poll.update((poll) => {
 			poll.title = data.title;
 			poll.duration = data.duration;
@@ -59,7 +53,7 @@ function initTimer(timer, poll) {
 		return timerValue;
 	});
 }
-function calculatePercentages(poll, votesRef) {
+export function calculatePercentages(poll, votesRef) {
 	let totalVotes
 	const unsub = votesRef.subscribe((value) => totalVotes = value)
 	unsub()
@@ -86,7 +80,6 @@ function calculateEndDate(timerRef, pollRef) {
 	});
 	const durationInMs =
 		durationInParts[1] * 60000 + durationInParts[2] * 1000;
-	console.log(createdAt, durationInParts, durationInMs);
 	timerRef.update((value) => {
 		value.inactivationDate = new Date(
 			createdAt.getTime() + durationInMs,

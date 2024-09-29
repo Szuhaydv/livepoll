@@ -4,15 +4,12 @@
 	import { onMount, onDestroy } from "svelte";
 	import { writable } from "svelte/store";
 	import { fade } from "svelte/transition";
-	import { Poll, fetchPoll } from "../dataService.js";
-
-	class Timer {
-		constructor(timeRemaining, inactivationDate, countdownRef) {
-			this.timeRemaining = timeRemaining;
-			this.inactivationDate = inactivationDate;
-			this.countdownRef = countdownRef;
-		}
-	}
+	import {
+		Poll,
+		Timer,
+		fetchPoll,
+		calculatePercentages,
+	} from "../dataService.js";
 
 	let eventSource;
 	export let params;
@@ -35,7 +32,7 @@
 				}
 				$poll.options[id].votes += 1;
 				totalVotes.update((n) => n + 1);
-				calculatePercentages();
+				calculatePercentages(poll, totalVotes);
 			} catch (error) {
 				console.error("Error parsing JSON: ", error);
 			}
@@ -60,7 +57,7 @@
 <h1 class="text-8xl text-yellow-400 text-center pt-[4vh] font-actionJackson">
 	Livepoll
 </h1>
-<Note title={poll.title} titleMargin={2}>
+<Note title={$poll.title} titleMargin={2}>
 	<div class="w-full flex justify-center items-center gap-5 mb-8">
 		<img src="/public/assets/clock.svg" alt="Clock icon" />
 		{#if $timer.timeRemaining !== undefined}
